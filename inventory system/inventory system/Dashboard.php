@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Dashboard</title>
+  <link rel="stylesheet" href="dbstyle.css">
+</head>
+<body>
+
+  
+  <div class="sidebar">
+    <h2>Inventory</h2>
+    <a href="Dashboard.html">Dashboard</a>
+    <a href="products.html">Products</a>
+    <a href="categories.html">Categories</a>
+    <a href="suppliers.html">Suppliers</a>
+    <a href="reports.html">Reports</a>
+    <a href="#">Logout</a>
+  </div>
+
+  
+  <div class="main-content">
+    
+    <div class="topbar">
+      <h1>Welcome, Admin</h1>
+      <button style="padding:8px 15px; border:none; border-radius:6px; background:#1cc88a; color:white; cursor:pointer;">+ Add Product</button>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Total Products</h3>
+        <p>6</p>
+      </div>
+      <div class="card">
+        <h3>Total Sales</h3>
+        <p>4</p>
+      </div>
+      <div class="card">
+        <h3>Total Suppliers</h3>
+        <p>8</p>
+      </div>
+      <div class="card">
+        <h3>Purchase Oders</h3>
+        <p>1</p>
+      </div>
+    </div>
+
+    
+    <div class="table-container">
+      Activity Summary (Coming Soon)
+      </table>
+    </div>
+  </div>
+
+ <?php
+ session_start();
+  include ("config.php");
+  $sqlQuery="SELECT * FROM `admin_db` WHERE `total_products`='$TotalProducts',`total_sale`='$TotalSales',";
+ ?>
+
+</body>
+</html>
