@@ -1,21 +1,4 @@
-<?php
-session_start();
-include 'config.php';
-
-
-$query = "SELECT * FROM products";
-$result = mysqli_query($mysql_db, $query);
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>User Dashboard</title>
-  <link rel="stylesheet" href="">
-</head>
-<style>
-  :root {
+:root {
   --bg1: #0f172a; 
   --bg2: #06233a; 
   --accent: #00d4ff;
@@ -38,8 +21,6 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
 }
-
-
 .floaters { position: fixed; inset: 0; pointer-events: none; z-index: -1; }
 .floater {
   position: absolute;
@@ -179,41 +160,3 @@ h1 {
     padding: 20px;
   }
 }
-
-</style>
-<body>
-  <div class="floaters">
-    <div class="floater f1"></div>
-    <div class="floater f2"></div>
-    <div class="floater f3"></div>
-  </div>
-
-  <div class="dashboard">
-    <aside class="sidebar">
-      <h2>Inventory</h2>
-      <a href="user_db.php" class="active">Dashboard</a>
-      <a href="my_orders.php">My Orders</a>
-      <a href="receipt.php">Receipts</a>
-      <a href="logout.php">Logout</a>
-    </aside>
-
-    <main class="main">
-      <h1>Welcome, User!</h1>
-      <div class="card-grid">
-        <div class="card-sm">
-          <h3>Active Orders</h3>
-          <p>3 in progress</p>
-        </div>
-        <div class="card-sm">
-          <h3>Total Purchases</h3>
-          <p>₦45,000</p>
-        </div>
-        <div class="card-sm">
-          <h3>Pending Payments</h3>
-          <p>₦8,500</p>
-        </div>
-      </div>
-    </main>
-  </div>
-</body>
-</html>
