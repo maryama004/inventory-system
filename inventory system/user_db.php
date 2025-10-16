@@ -2,9 +2,25 @@
 session_start();
 include 'config.php';
 
+// Ensure user is logged in
+if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'user') {
+    header("Location: login.php");
+    exit;
+}
 
-$query = "SELECT * FROM products";
-$result = mysqli_query($mysql_db, $query);
+$user_id = $_SESSION['id'];
+
+// 1️⃣ Get total active orders (not completed)
+$active_orders = $mysql_db->query("SELECT COUNT(*) AS count FROM orders WHERE id = $user_id ")->fetch_assoc()['count'];
+
+// 2️⃣ Get total purchases (sum of all paid orders)
+$total_purchases = $mysql_db->query("SELECT IFNULL(SUM(price), 0) AS total FROM orders WHERE id = $user_id")->fetch_assoc()['total'];
+
+// 3️⃣ Get total pending payments
+$pending_payments = $mysql_db->query("SELECT IFNULL(SUM(price), 0) AS total FROM orders WHERE id = $user_id ")->fetch_assoc()['total'];
+
+// 4️⃣ Get recent products (optional)
+$products = $mysql_db->query("SELECT * FROM products ORDER BY id DESC LIMIT 5");
 ?>
 
 <!DOCTYPE html>
@@ -12,175 +28,9 @@ $result = mysqli_query($mysql_db, $query);
 <head>
   <meta charset="UTF-8">
   <title>User Dashboard</title>
-  <link rel="stylesheet" href="">
+  <link rel="stylesheet" href="user_db.css">
 </head>
-<style>
-  :root {
-  --bg1: #0f172a; 
-  --bg2: #06233a; 
-  --accent: #00d4ff;
-  --accent-2: #7c4dff;
-  --glass: rgba(255, 255, 255, 0.06);
-  --muted: rgba(255, 255, 255, 0.7);
-  --radius: 16px;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-}
 
-
-html, body {
-  height: 100%;
-  margin: 0;
-  color: #e6eef8;
-  background: radial-gradient(1200px 600px at 10% 10%, rgba(124,77,255,0.12), transparent),
-              radial-gradient(900px 450px at 90% 90%, rgba(0,212,255,0.08), transparent),
-              linear-gradient(120deg, var(--bg1), var(--bg2));
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow: hidden;
-}
-
-
-.floaters { position: fixed; inset: 0; pointer-events: none; z-index: -1; }
-.floater {
-  position: absolute;
-  filter: blur(12px) saturate(120%);
-  opacity: 0.9;
-  transform-origin: center;
-  mix-blend-mode: screen;
-  animation: drift 16s ease-in-out infinite;
-}
-.floater.f1 { width: 420px; height: 420px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); left: -8%; top: 6%; border-radius: 44% 56% 50% 50%; }
-.floater.f2 { width: 320px; height: 320px; background: linear-gradient(135deg, var(--accent-2), var(--accent)); right: -6%; bottom: -10%; border-radius: 40% 60% 45% 55%; }
-.floater.f3 { width: 220px; height: 220px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); left: 30%; bottom: 60%; border-radius: 50%; }
-
-@keyframes drift {
-  0% { transform: translateY(0) rotate(0deg) scale(1); }
-  50% { transform: translateY(-20px) rotate(8deg) scale(1.03); }
-  100% { transform: translateY(0) rotate(0deg) scale(1); }
-}
-
-
-.dashboard-body {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.dashboard {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  height: 100%;
-}
-
-
-.sidebar {
-  background: var(--glass);
-  backdrop-filter: blur(10px);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.sidebar h2 {
-  color: var(--accent);
-  font-size: 20px;
-  margin-bottom: 12px;
-}
-
-.sidebar a {
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 15px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.sidebar a:hover,
-.sidebar a.active {
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  color: #021027;
-  font-weight: 600;
-}
-
-
-.main {
-  padding: 32px 40px;
-  overflow-y: auto;
-}
-
-h1 {
-  font-size: 24px;
-  margin-bottom: 24px;
-}
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-}
-
-.card-sm {
-  background: var(--glass);
-  padding: 22px;
-  border-radius: var(--radius);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: transform 0.2s ease;
-}
-
-.card-sm:hover { transform: translateY(-3px); }
-
-.card-sm h3 {
-  margin: 0 0 8px;
-  font-size: 16px;
-  color: var(--accent);
-}
-
-.card-sm p {
-  margin: 0;
-  font-size: 14px;
-  color: var(--muted);
-}
-
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 24px;
-  font-size: 14px;
-}
-
-.table th, .table td {
-  text-align: left;
-  padding: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.table th {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-
-@media (max-width: 700px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-  }
-  .sidebar {
-    flex-direction: row;
-    overflow-x: auto;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  .main {
-    padding: 20px;
-  }
-}
-
-</style>
 <body>
   <div class="floaters">
     <div class="floater f1"></div>
@@ -198,21 +48,50 @@ h1 {
     </aside>
 
     <main class="main">
-      <h1>Welcome, User!</h1>
+       <h1>Welcome,</h1> 
+       <!-- <?= htmlspecialchars($_SESSION['full_name']) ?>! -->
+
       <div class="card-grid">
         <div class="card-sm">
           <h3>Active Orders</h3>
-          <p>3 in progress</p>
+          <p><?= $active_orders ?> in progress</p>
         </div>
         <div class="card-sm">
           <h3>Total Purchases</h3>
-          <p>₦45,000</p>
+          <p>₦<?= number_format($total_purchases, 2) ?></p>
         </div>
         <div class="card-sm">
           <h3>Pending Payments</h3>
-          <p>₦8,500</p>
+          <p>₦<?= number_format($pending_payments, 2) ?></p>
         </div>
       </div>
+
+      <h2 style="margin-top: 30px;">Recent Products</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Price (₦)</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if ($products->num_rows > 0): ?>
+            <?php while ($p = $products->fetch_assoc()): ?>
+              <tr>
+                <td><?= htmlspecialchars($p['products_name']) ?></td>
+                <td><?= htmlspecialchars($p['category']) ?></td>
+                <td><?= number_format($p['price'], 2) ?></td>
+                <td><?= $p['quantity'] ?></td>
+              </tr>
+            <?php endwhile; ?>
+          <?php else: ?>
+            <tr><td colspan="4" style="text-align:center;color:#aaa;">No products found.</td></tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+
     </main>
   </div>
 </body>

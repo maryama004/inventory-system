@@ -5,65 +5,34 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-require_once 'config.php';
+include ("config.php");
 
-// Initialize variables
-$product_name = $price = '';
-$product_name_err = $price_err = '';
+if (isset($_POST['name'])) {
+    $name = $_POST['name'];
+    $category = $_POST['category'];
+    $quantity = $_POST['quantity'];
+    $price = $_POST['price'];
 
-// Handle adding products
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
+    
+    $sql = "INSERT INTO products (products_name, category, quantity, price)
+            VALUES (?, ?, ?, ?)";
 
-    // Validate product name
-    if (empty(trim($_POST['product_name']))) {
-        $product_name_err = "Please enter product name.";
+    $stmt = $mysql_db->prepare($sql);
+    $stmt->bind_param("ssid", $name, $category, $quantity, $price);
+
+    if ($stmt->execute()) {
+        echo "<script>alert('Product added successfully!');</script>";
     } else {
-        $product_name = trim($_POST['product_name']);
+        echo "Error: " . $stmt->error;
     }
 
-    // Validate price
-    if (empty(trim($_POST['price']))) {
-        $price_err = "Please enter product price.";
-    } else {
-        $price = trim($_POST['price']);
-    }
-
-    // If no errors, insert into the database
-    if (empty($product_name_err) && empty($price_err)) {
-        $sql = "INSERT INTO products (name, price) VALUES (?, ?)";
-        if ($stmt = $mysql_db->prepare($sql)) {
-            $stmt->bind_param("sd", $product_name, $price);
-
-            if ($stmt->execute()) {
-                echo "Product added successfully.";
-            } else {
-                echo "Something went wrong. Please try again later.";
-            }
-            $stmt->close();
-        }
-    }
+    $stmt->close();
 }
 
-// Handle deleting products
-if (isset($_GET['delete'])) {
-    $product_id = $_GET['delete'];
-    $sql = "DELETE FROM products WHERE id = ?";
-    if ($stmt = $mysql_db->prepare($sql)) {
-        $stmt->bind_param("i", $product_id);
-
-        if ($stmt->execute()) {
-            echo "Product deleted successfully.";
-        } else {
-            echo "Something went wrong.";
-        }
-        $stmt->close();
-    }
-}
-
-// Fetch all products
-$sql = "SELECT * FROM products";
-$result = $mysql_db->query($sql);
+$mysql_db->close();
 ?>
+   
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

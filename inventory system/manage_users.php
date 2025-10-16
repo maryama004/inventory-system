@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_user'])) {
 
     
     if (empty($username_err) && empty($password_err) && empty($role_err)) {
-        $sql = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO user (username, password, role) VALUES (?, ?, ?)";
         if ($stmt = $mysql_db->prepare($sql)) {
             $stmt->bind_param("sss", $username, $password, $role);
 
@@ -63,7 +63,7 @@ if (isset($_GET['delete'])) {
 }
 
 
-$sql = "SELECT * FROM users";
+$sql = "SELECT * FROM user";
 $result = $mysql_db->query($sql);
 ?>
 <!DOCTYPE html>
@@ -113,7 +113,7 @@ $result = $mysql_db->query($sql);
             </tr>
           </thead>
           <tbody>
-            <?php while ($u = mysqli_fetch_assoc($users)) { ?>
+            <?php while ($u = mysqli_fetch_assoc($result)) { ?>
               <tr>
                 <td><?= $u['id'] ?></td>
                 <td><?= htmlspecialchars($u['full_name']) ?></td>
